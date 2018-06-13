@@ -1384,6 +1384,12 @@ if (typeof define === "function" && define.amd) {
     global.html_beautify = function(html_source, options) {
         return style_html(html_source, options, global.js_beautify, global.css_beautify);
     };
+} else if (typeof self !== 'undefined') {
+    // web worker
+    self.html_beautify = function(html_source, options) {
+        return style_html(html_source, options, self.js_beautify, self.css_beautify);
+    };
 }
+
 
 }());
