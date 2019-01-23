@@ -9,7 +9,7 @@
 
   The MIT License (MIT)
 
-  Copyright (c) 2007-2017 Einar Lielmanis, Liam Newman, and contributors.
+  Copyright (c) 2007-2018 Einar Lielmanis, Liam Newman, and contributors.
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -42,6 +42,9 @@ class CSSBeautifierTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        pass
+
+    def reset_options(self):
         false = False
         true = True
 
@@ -61,10 +64,7 @@ class CSSBeautifierTest(unittest.TestCase):
         default_options.preserve_newlines = false
         default_options.space_around_selector_separator = false
 
-        cls.default_options = default_options
-
-    def reset_options(self):
-        self.options = copy.copy(self.default_options)
+        self.options = copy.copy(default_options)
 
     def testGenerated(self):
         self.reset_options()
@@ -76,8 +76,8 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
-        # End With Newline - (eof = "\n")
-        self.reset_options();
+        # End With Newline - (end_with_newline = "true")
+        self.reset_options()
         self.options.end_with_newline = true
         test_fragment('', '\n')
         test_fragment('   .tabs{}', '   .tabs {}\n')
@@ -92,8 +92,8 @@ class CSSBeautifierTest(unittest.TestCase):
             '   .tabs {}\n')
         test_fragment('\n')
 
-        # End With Newline - (eof = "")
-        self.reset_options();
+        # End With Newline - (end_with_newline = "false")
+        self.reset_options()
         self.options.end_with_newline = false
         test_fragment('')
         test_fragment('   .tabs{}', '   .tabs {}')
@@ -110,8 +110,165 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
+        # Support Indent Level Options and Base Indent Autodetection - (indent_size = "4", indent_char = "" "", indent_with_tabs = "false")
+        self.reset_options()
+        self.options.indent_size = 4
+        self.options.indent_char = ' '
+        self.options.indent_with_tabs = false
+        test_fragment('   a')
+        test_fragment(
+            '   .a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '   .a {\n' +
+            '       text-align: right;\n' +
+            '   }')
+        test_fragment(
+            '   // This is a random comment\n' +
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '   // This is a random comment\n' +
+            '   .a {\n' +
+            '       text-align: right;\n' +
+            '   }')
+
+        # Support Indent Level Options and Base Indent Autodetection - (indent_size = "4", indent_char = "" "", indent_with_tabs = "false", indent_level = "0")
+        self.reset_options()
+        self.options.indent_size = 4
+        self.options.indent_char = ' '
+        self.options.indent_with_tabs = false
+        self.options.indent_level = 0
+        test_fragment('   a')
+        test_fragment(
+            '   .a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '   .a {\n' +
+            '       text-align: right;\n' +
+            '   }')
+        test_fragment(
+            '   // This is a random comment\n' +
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '   // This is a random comment\n' +
+            '   .a {\n' +
+            '       text-align: right;\n' +
+            '   }')
+
+        # Support Indent Level Options and Base Indent Autodetection - (indent_size = "4", indent_char = "" "", indent_with_tabs = "false", indent_level = "1")
+        self.reset_options()
+        self.options.indent_size = 4
+        self.options.indent_char = ' '
+        self.options.indent_with_tabs = false
+        self.options.indent_level = 1
+        test_fragment('   a', '    a')
+        test_fragment(
+            '   .a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '    .a {\n' +
+            '        text-align: right;\n' +
+            '    }')
+        test_fragment(
+            '   // This is a random comment\n' +
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '    // This is a random comment\n' +
+            '    .a {\n' +
+            '        text-align: right;\n' +
+            '    }')
+
+        # Support Indent Level Options and Base Indent Autodetection - (indent_size = "4", indent_char = "" "", indent_with_tabs = "false", indent_level = "2")
+        self.reset_options()
+        self.options.indent_size = 4
+        self.options.indent_char = ' '
+        self.options.indent_with_tabs = false
+        self.options.indent_level = 2
+        test_fragment('a', '        a')
+        test_fragment(
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '        .a {\n' +
+            '            text-align: right;\n' +
+            '        }')
+        test_fragment(
+            '// This is a random comment\n' +
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '        // This is a random comment\n' +
+            '        .a {\n' +
+            '            text-align: right;\n' +
+            '        }')
+
+        # Support Indent Level Options and Base Indent Autodetection - (indent_size = "4", indent_char = "" "", indent_with_tabs = "true", indent_level = "2")
+        self.reset_options()
+        self.options.indent_size = 4
+        self.options.indent_char = ' '
+        self.options.indent_with_tabs = true
+        self.options.indent_level = 2
+        test_fragment('a', '\t\ta')
+        test_fragment(
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '\t\t.a {\n' +
+            '\t\t\ttext-align: right;\n' +
+            '\t\t}')
+        test_fragment(
+            '// This is a random comment\n' +
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '\t\t// This is a random comment\n' +
+            '\t\t.a {\n' +
+            '\t\t\ttext-align: right;\n' +
+            '\t\t}')
+
+        # Support Indent Level Options and Base Indent Autodetection - (indent_size = "4", indent_char = "" "", indent_with_tabs = "false", indent_level = "0")
+        self.reset_options()
+        self.options.indent_size = 4
+        self.options.indent_char = ' '
+        self.options.indent_with_tabs = false
+        self.options.indent_level = 0
+        test_fragment('\t   a')
+        test_fragment(
+            '\t   .a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '\t   .a {\n' +
+            '\t       text-align: right;\n' +
+            '\t   }')
+        test_fragment(
+            '\t   // This is a random comment\n' +
+            '.a {\n' +
+            '  text-align: right;\n' +
+            '}',
+            #  -- output --
+            '\t   // This is a random comment\n' +
+            '\t   .a {\n' +
+            '\t       text-align: right;\n' +
+            '\t   }')
+
+
+        #============================================================
         # Empty braces
-        self.reset_options();
+        self.reset_options()
         t('.tabs{}', '.tabs {}')
         t('.tabs { }', '.tabs {}')
         t('.tabs    {    }', '.tabs {}')
@@ -126,7 +283,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # 
-        self.reset_options();
+        self.reset_options()
         t(
             '#cboxOverlay {\n' +
             '\tbackground: url(images/overlay.png) repeat 0 0;\n' +
@@ -139,11 +296,35 @@ class CSSBeautifierTest(unittest.TestCase):
             '\topacity: 0.9;\n' +
             '\tfilter: alpha(opacity=90);\n' +
             '}')
+        
+        # simple data uri base64 test
+        t(
+            'a { background: url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIPnI+py+0/hJzz0IruwjsVADs=); }',
+            #  -- output --
+            'a {\n' +
+            '\tbackground: url(data:image/gif;base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIPnI+py+0/hJzz0IruwjsVADs=);\n' +
+            '}')
+        
+        # non-base64 data
+        t(
+            'a { background: url(data:text/html,%3Ch1%3EHello%2C%20World!%3C%2Fh1%3E); }',
+            #  -- output --
+            'a {\n' +
+            '\tbackground: url(data:text/html,%3Ch1%3EHello%2C%20World!%3C%2Fh1%3E);\n' +
+            '}')
+        
+        # Beautifier does not fix or mitigate bad data uri
+        t(
+            'a { background: url(data:  image/gif   base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIPnI+py+0/hJzz0IruwjsVADs=); }',
+            #  -- output --
+            'a {\n' +
+            '\tbackground: url(data:  image/gif   base64,R0lGODlhCwALAJEAAAAAAP///xUVFf///yH5BAEAAAMALAAAAAALAAsAAAIPnI+py+0/hJzz0IruwjsVADs=);\n' +
+            '}')
 
 
         #============================================================
-        # Support simple language specific option inheritance/overriding - (c = "     ")
-        self.reset_options();
+        # Support simple language specific option inheritance/overriding - (indent_char = "" "", indent_size = "4", js = "{ "indent_size": 3 }", css = "{ "indent_size": 5 }")
+        self.reset_options()
         self.options.indent_char = ' '
         self.options.indent_size = 4
         self.options.js = { 'indent_size': 3 }
@@ -153,8 +334,8 @@ class CSSBeautifierTest(unittest.TestCase):
             '     font-size: 12px;\n' +
             '}')
 
-        # Support simple language specific option inheritance/overriding - (c = "    ")
-        self.reset_options();
+        # Support simple language specific option inheritance/overriding - (indent_char = "" "", indent_size = "4", html = "{ "js": { "indent_size": 3 }, "css": { "indent_size": 5 } }")
+        self.reset_options()
         self.options.indent_char = ' '
         self.options.indent_size = 4
         self.options.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 5 } }
@@ -163,8 +344,8 @@ class CSSBeautifierTest(unittest.TestCase):
             '    font-size: 12px;\n' +
             '}')
 
-        # Support simple language specific option inheritance/overriding - (c = "   ")
-        self.reset_options();
+        # Support simple language specific option inheritance/overriding - (indent_char = "" "", indent_size = "9", html = "{ "js": { "indent_size": 3 }, "css": { "indent_size": 8 }, "indent_size": 2}", js = "{ "indent_size": 5 }", css = "{ "indent_size": 3 }")
+        self.reset_options()
         self.options.indent_char = ' '
         self.options.indent_size = 9
         self.options.html = { 'js': { 'indent_size': 3 }, 'css': { 'indent_size': 8 }, 'indent_size': 2}
@@ -177,8 +358,8 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
-        # Space Around Combinator - (space = " ")
-        self.reset_options();
+        # Space Around Combinator - (space_around_combinator = "true")
+        self.reset_options()
         self.options.space_around_combinator = true
         t('a>b{}', 'a > b {}')
         t('a~b{}', 'a ~ b {}')
@@ -213,8 +394,8 @@ class CSSBeautifierTest(unittest.TestCase):
             '\twidth: calc(100% + 45px);\n' +
             '}')
 
-        # Space Around Combinator - (space = "")
-        self.reset_options();
+        # Space Around Combinator - (space_around_combinator = "false")
+        self.reset_options()
         self.options.space_around_combinator = false
         t('a>b{}', 'a>b {}')
         t('a~b{}', 'a~b {}')
@@ -249,8 +430,8 @@ class CSSBeautifierTest(unittest.TestCase):
             '\twidth: calc(100% + 45px);\n' +
             '}')
 
-        # Space Around Combinator - (space = " ")
-        self.reset_options();
+        # Space Around Combinator - (space_around_selector_separator = "true")
+        self.reset_options()
         self.options.space_around_selector_separator = true
         t('a>b{}', 'a > b {}')
         t('a~b{}', 'a ~ b {}')
@@ -287,13 +468,31 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
-        # Selector Separator - (separator = " ", separator1 = " ")
-        self.reset_options();
+        # Issue 1373 -- Correct spacing around [attribute~=value]
+        self.reset_options()
+        t('header>div[class~="div-all"]')
+
+
+        #============================================================
+        # Selector Separator - (selector_separator_newline = "false", selector_separator = "" "", newline_between_rules = "true")
+        self.reset_options()
         self.options.selector_separator_newline = false
         self.options.selector_separator = " "
+        self.options.newline_between_rules = true
         t(
             '#bla, #foo{color:green}',
             #  -- output --
+            '#bla, #foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '#bla, #foo{color:green}\n' +
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla, #foo {\n' +
+            '\tcolor: green\n' +
+            '}\n' +
+            '\n' +
             '#bla, #foo {\n' +
             '\tcolor: green\n' +
             '}')
@@ -303,11 +502,26 @@ class CSSBeautifierTest(unittest.TestCase):
             '@media print {\n' +
             '\t.tab {}\n' +
             '}')
+        
+        # This is bug #1489
         t(
             '@media print {.tab,.bat{}}',
             #  -- output --
             '@media print {\n' +
             '\t.tab, .bat {}\n' +
+            '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {// comment\n' +
+            '//comment 2\n' +
+            '.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\n' +
+            '\t// comment\n' +
+            '\t//comment 2\n' +
+            '\t.bat {}\n' +
             '}')
         t(
             '#bla, #foo{color:black}',
@@ -316,6 +530,80 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tcolor: black\n' +
             '}')
         t(
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}\n' +
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}',
+            #  -- output --
+            'a:first-child, a:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\n' +
+            '\tdiv:first-child, div:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
+            '}\n' +
+            '\n' +
+            'a:first-child, a:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\n' +
+            '\tdiv:first-child, div:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
+            '}')
+
+        # Selector Separator - (selector_separator_newline = "false", selector_separator = "" "", newline_between_rules = "false")
+        self.reset_options()
+        self.options.selector_separator_newline = false
+        self.options.selector_separator = " "
+        self.options.newline_between_rules = false
+        t(
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla, #foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '#bla, #foo{color:green}\n' +
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla, #foo {\n' +
+            '\tcolor: green\n' +
+            '}\n' +
+            '#bla, #foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '@media print {.tab{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\t.tab {}\n' +
+            '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {.tab,.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\t.tab, .bat {}\n' +
+            '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {// comment\n' +
+            '//comment 2\n' +
+            '.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\t// comment\n' +
+            '\t//comment 2\n' +
+            '\t.bat {}\n' +
+            '}')
+        t(
+            '#bla, #foo{color:black}',
+            #  -- output --
+            '#bla, #foo {\n' +
+            '\tcolor: black\n' +
+            '}')
+        t(
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}\n' +
             'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}',
             #  -- output --
             'a:first-child, a:first-child {\n' +
@@ -323,15 +611,32 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tdiv:first-child, div:hover {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
+            '}\n' +
+            'a:first-child, a:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\tdiv:first-child, div:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
             '}')
 
-        # Selector Separator - (separator = " ", separator1 = " ")
-        self.reset_options();
+        # Selector Separator - (selector_separator_newline = "false", selector_separator = ""  "", newline_between_rules = "false")
+        self.reset_options()
         self.options.selector_separator_newline = false
         self.options.selector_separator = "  "
+        self.options.newline_between_rules = false
         t(
             '#bla, #foo{color:green}',
             #  -- output --
+            '#bla, #foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '#bla, #foo{color:green}\n' +
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla, #foo {\n' +
+            '\tcolor: green\n' +
+            '}\n' +
             '#bla, #foo {\n' +
             '\tcolor: green\n' +
             '}')
@@ -341,11 +646,25 @@ class CSSBeautifierTest(unittest.TestCase):
             '@media print {\n' +
             '\t.tab {}\n' +
             '}')
+        
+        # This is bug #1489
         t(
             '@media print {.tab,.bat{}}',
             #  -- output --
             '@media print {\n' +
             '\t.tab, .bat {}\n' +
+            '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {// comment\n' +
+            '//comment 2\n' +
+            '.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\t// comment\n' +
+            '\t//comment 2\n' +
+            '\t.bat {}\n' +
             '}')
         t(
             '#bla, #foo{color:black}',
@@ -354,6 +673,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tcolor: black\n' +
             '}')
         t(
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}\n' +
             'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}',
             #  -- output --
             'a:first-child, a:first-child {\n' +
@@ -361,15 +681,33 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tdiv:first-child, div:hover {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
+            '}\n' +
+            'a:first-child, a:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\tdiv:first-child, div:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
             '}')
 
-        # Selector Separator - (separator = "\n", separator1 = "\n\t")
-        self.reset_options();
+        # Selector Separator - (selector_separator_newline = "true", selector_separator = "" "", newline_between_rules = "true")
+        self.reset_options()
         self.options.selector_separator_newline = true
         self.options.selector_separator = " "
+        self.options.newline_between_rules = true
         t(
             '#bla, #foo{color:green}',
             #  -- output --
+            '#bla,\n#foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '#bla, #foo{color:green}\n' +
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla,\n#foo {\n' +
+            '\tcolor: green\n' +
+            '}\n' +
+            '\n' +
             '#bla,\n#foo {\n' +
             '\tcolor: green\n' +
             '}')
@@ -379,12 +717,101 @@ class CSSBeautifierTest(unittest.TestCase):
             '@media print {\n' +
             '\t.tab {}\n' +
             '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {.tab,.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\n' +
+            '\t.tab,\n\t.bat {}\n' +
+            '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {// comment\n' +
+            '//comment 2\n' +
+            '.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\n' +
+            '\t// comment\n' +
+            '\t//comment 2\n' +
+            '\t.bat {}\n' +
+            '}')
+        t(
+            '#bla, #foo{color:black}',
+            #  -- output --
+            '#bla,\n#foo {\n' +
+            '\tcolor: black\n' +
+            '}')
+        t(
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}\n' +
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}',
+            #  -- output --
+            'a:first-child,\na:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\n' +
+            '\tdiv:first-child,\n\tdiv:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
+            '}\n' +
+            '\n' +
+            'a:first-child,\na:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\n' +
+            '\tdiv:first-child,\n\tdiv:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
+            '}')
+
+        # Selector Separator - (selector_separator_newline = "true", selector_separator = "" "", newline_between_rules = "false")
+        self.reset_options()
+        self.options.selector_separator_newline = true
+        self.options.selector_separator = " "
+        self.options.newline_between_rules = false
+        t(
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla,\n#foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '#bla, #foo{color:green}\n' +
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla,\n#foo {\n' +
+            '\tcolor: green\n' +
+            '}\n' +
+            '#bla,\n#foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '@media print {.tab{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\t.tab {}\n' +
+            '}')
+        
+        # This is bug #1489
         t(
             '@media print {.tab,.bat{}}',
             #  -- output --
             '@media print {\n' +
             '\t.tab,\n\t.bat {}\n' +
             '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {// comment\n' +
+            '//comment 2\n' +
+            '.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\t// comment\n' +
+            '\t//comment 2\n' +
+            '\t.bat {}\n' +
+            '}')
         t(
             '#bla, #foo{color:black}',
             #  -- output --
@@ -392,6 +819,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tcolor: black\n' +
             '}')
         t(
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}\n' +
             'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}',
             #  -- output --
             'a:first-child,\na:first-child {\n' +
@@ -399,15 +827,32 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tdiv:first-child,\n\tdiv:hover {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
+            '}\n' +
+            'a:first-child,\na:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\tdiv:first-child,\n\tdiv:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
             '}')
 
-        # Selector Separator - (separator = "\n", separator1 = "\n\t")
-        self.reset_options();
+        # Selector Separator - (selector_separator_newline = "true", selector_separator = ""  "", newline_between_rules = "false")
+        self.reset_options()
         self.options.selector_separator_newline = true
         self.options.selector_separator = "  "
+        self.options.newline_between_rules = false
         t(
             '#bla, #foo{color:green}',
             #  -- output --
+            '#bla,\n#foo {\n' +
+            '\tcolor: green\n' +
+            '}')
+        t(
+            '#bla, #foo{color:green}\n' +
+            '#bla, #foo{color:green}',
+            #  -- output --
+            '#bla,\n#foo {\n' +
+            '\tcolor: green\n' +
+            '}\n' +
             '#bla,\n#foo {\n' +
             '\tcolor: green\n' +
             '}')
@@ -417,11 +862,25 @@ class CSSBeautifierTest(unittest.TestCase):
             '@media print {\n' +
             '\t.tab {}\n' +
             '}')
+        
+        # This is bug #1489
         t(
             '@media print {.tab,.bat{}}',
             #  -- output --
             '@media print {\n' +
             '\t.tab,\n\t.bat {}\n' +
+            '}')
+        
+        # This is bug #1489
+        t(
+            '@media print {// comment\n' +
+            '//comment 2\n' +
+            '.bat{}}',
+            #  -- output --
+            '@media print {\n' +
+            '\t// comment\n' +
+            '\t//comment 2\n' +
+            '\t.bat {}\n' +
             '}')
         t(
             '#bla, #foo{color:black}',
@@ -430,8 +889,15 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tcolor: black\n' +
             '}')
         t(
+            'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}\n' +
             'a:first-child,a:first-child{color:red;div:first-child,div:hover{color:black;}}',
             #  -- output --
+            'a:first-child,\na:first-child {\n' +
+            '\tcolor: red;\n' +
+            '\tdiv:first-child,\n\tdiv:hover {\n' +
+            '\t\tcolor: black;\n' +
+            '\t}\n' +
+            '}\n' +
             'a:first-child,\na:first-child {\n' +
             '\tcolor: red;\n' +
             '\tdiv:first-child,\n\tdiv:hover {\n' +
@@ -441,8 +907,8 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
-        # Preserve Newlines - (separator_input = "\n\n", separator_output = "\n\n")
-        self.reset_options();
+        # Preserve Newlines - (preserve_newlines = "true")
+        self.reset_options()
         self.options.preserve_newlines = true
         t('.div {}\n\n.span {}')
         t(
@@ -455,8 +921,8 @@ class CSSBeautifierTest(unittest.TestCase):
             '\tcolor: black;\n\n\tfont-size: 12px;\n' +
             '}')
 
-        # Preserve Newlines - (separator_input = "\n\n", separator_output = "\n")
-        self.reset_options();
+        # Preserve Newlines - (preserve_newlines = "false")
+        self.reset_options()
         self.options.preserve_newlines = false
         t('.div {}\n\n.span {}', '.div {}\n.span {}')
         t(
@@ -472,7 +938,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Preserve Newlines and newline_between_rules
-        self.reset_options();
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = true
         t(
@@ -582,7 +1048,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Preserve Newlines and add tabs
-        self.reset_options();
+        self.reset_options()
         self.options.preserve_newlines = true
         t(
             '.tool-tip {\n' +
@@ -619,8 +1085,21 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
-        # Newline Between Rules - (new_rule = "\n\n")
-        self.reset_options();
+        # Issue #1338 -- Preserve Newlines within CSS rules
+        self.reset_options()
+        self.options.preserve_newlines = true
+        t(
+            'body {\n' +
+            '\tgrid-template-areas:\n' +
+            '\t\t"header header"\n' +
+            '\t\t"main   sidebar"\n' +
+            '\t\t"footer footer";\n' +
+            '}')
+
+
+        #============================================================
+        # Newline Between Rules - (newline_between_rules = "true")
+        self.reset_options()
         self.options.newline_between_rules = true
         t(
             '.div {}\n' +
@@ -695,6 +1174,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             '#foo {\n' +
             '\tbackground-image: url(foo@2x.png);\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -720,6 +1200,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo@2x.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -757,10 +1238,12 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@media screen and (min-device-pixel-ratio: 2) {\n' +
             '\t\t@font-face {\n' +
             '\t\t\tfont-family: "Helvetica Neue"\n' +
             '\t\t}\n' +
+            '\n' +
             '\t\t#foo:hover {\n' +
             '\t\t\tbackground-image: url(foo@2x.png);\n' +
             '\t\t}\n' +
@@ -772,6 +1255,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:first-child {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -786,6 +1270,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:not(.peq) {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -794,9 +1279,219 @@ class CSSBeautifierTest(unittest.TestCase):
             '.div {\n' +
             '\theight: 15px;\n' +
             '}')
+        t(
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t}\n' +
+            '\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            '\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\t.list-group-item {}\n' +
+            '\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            '\n' +
+            '.list-group-condensed {}')
+        t(
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\n' +
+            '\t.list-group-icon {}\n' +
+            '\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            '\n' +
+            '.list-group-condensed {}')
+        t(
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t//this is my pre-comment\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t//this is a comment\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '\t//this is also a comment\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\n' +
+            '\t//this is my pre-comment\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\n' +
+            '\t//this is a comment\n' +
+            '\t.list-group-icon {}\n' +
+            '\n' +
+            '\t//this is also a comment\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            '\n' +
+            '.list-group-condensed {}')
+        t(
+            '.list-group {\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            'color: #38a0e5;\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            'color: #38a0e5;\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\n' +
+            '\t.list-group-icon {}\n' +
+            '\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            '\n' +
+            'color: #38a0e5;\n' +
+            '\n' +
+            '.list-group-condensed {}')
+        t(
+            '@media only screen and (max-width: 40em) {\n' +
+            'header {\n' +
+            '    margin: 0 auto;\n' +
+            '    padding: 10px;\n' +
+            '    background: red;\n' +
+            '    }\n' +
+            'main {\n' +
+            '    margin: 20px auto;\n' +
+            '    padding: 4px;\n' +
+            '    background: blue;\n' +
+            '    }\n' +
+            '}',
+            #  -- output --
+            '@media only screen and (max-width: 40em) {\n' +
+            '\theader {\n' +
+            '\t\tmargin: 0 auto;\n' +
+            '\t\tpadding: 10px;\n' +
+            '\t\tbackground: red;\n' +
+            '\t}\n' +
+            '\n' +
+            '\tmain {\n' +
+            '\t\tmargin: 20px auto;\n' +
+            '\t\tpadding: 4px;\n' +
+            '\t\tbackground: blue;\n' +
+            '\t}\n' +
+            '}')
+        t(
+            '.preloader {\n' +
+            '\theight: 20px;\n' +
+            '\t.line {\n' +
+            '\t\twidth: 1px;\n' +
+            '\t\theight: 12px;\n' +
+            '\t\tbackground: #38a0e5;\n' +
+            '\t\tmargin: 0 1px;\n' +
+            '\t\tdisplay: inline-block;\n' +
+            '\t\t&.line-1 {\n' +
+            '\t\t\tanimation-delay: 800ms;\n' +
+            '\t\t}\n' +
+            '\t\t&.line-2 {\n' +
+            '\t\t\tanimation-delay: 600ms;\n' +
+            '\t\t}\n' +
+            '\t}\n' +
+            '\tdiv {\n' +
+            '\t\tcolor: #38a0e5;\n' +
+            '\t\tfont-family: "Arial", sans-serif;\n' +
+            '\t\tfont-size: 10px;\n' +
+            '\t\tmargin: 5px 0;\n' +
+            '\t}\n' +
+            '}',
+            #  -- output --
+            '.preloader {\n' +
+            '\theight: 20px;\n' +
+            '\n' +
+            '\t.line {\n' +
+            '\t\twidth: 1px;\n' +
+            '\t\theight: 12px;\n' +
+            '\t\tbackground: #38a0e5;\n' +
+            '\t\tmargin: 0 1px;\n' +
+            '\t\tdisplay: inline-block;\n' +
+            '\n' +
+            '\t\t&.line-1 {\n' +
+            '\t\t\tanimation-delay: 800ms;\n' +
+            '\t\t}\n' +
+            '\n' +
+            '\t\t&.line-2 {\n' +
+            '\t\t\tanimation-delay: 600ms;\n' +
+            '\t\t}\n' +
+            '\t}\n' +
+            '\n' +
+            '\tdiv {\n' +
+            '\t\tcolor: #38a0e5;\n' +
+            '\t\tfont-family: "Arial", sans-serif;\n' +
+            '\t\tfont-size: 10px;\n' +
+            '\t\tmargin: 5px 0;\n' +
+            '\t}\n' +
+            '}')
 
-        # Newline Between Rules - (new_rule = "\n")
-        self.reset_options();
+        # Newline Between Rules - (newline_between_rules = "false")
+        self.reset_options()
         self.options.newline_between_rules = false
         t(
             '.div {}\n' +
@@ -938,11 +1633,174 @@ class CSSBeautifierTest(unittest.TestCase):
             '.div {\n' +
             '\theight: 15px;\n' +
             '}')
+        t(
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t}\n' +
+            '\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            '\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\t.list-group-item {}\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            '.list-group-condensed {}')
+        t(
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\t.list-group-icon {}\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            '.list-group-condensed {}')
+        t(
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t//this is my pre-comment\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\t//this is a comment\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '\t//this is also a comment\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\t//this is my pre-comment\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\t//this is a comment\n' +
+            '\t.list-group-icon {}\n' +
+            '\t//this is also a comment\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            '.list-group-condensed {}')
+        t(
+            '.list-group {\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta:1\n' +
+            '\t}\n' +
+            'color: #38a0e5;\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-icon {\n' +
+            '\t}\n' +
+            '}\n' +
+            'color: #38a0e5;\n' +
+            '.list-group-condensed {\n' +
+            '}',
+            #  -- output --
+            '.list-group {\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-item {\n' +
+            '\t\ta: 1\n' +
+            '\t}\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-icon {}\n' +
+            '\tcolor: #38a0e5;\n' +
+            '\t.list-group-icon {}\n' +
+            '}\n' +
+            'color: #38a0e5;\n' +
+            '.list-group-condensed {}')
+        t(
+            '@media only screen and (max-width: 40em) {\n' +
+            'header {\n' +
+            '    margin: 0 auto;\n' +
+            '    padding: 10px;\n' +
+            '    background: red;\n' +
+            '    }\n' +
+            'main {\n' +
+            '    margin: 20px auto;\n' +
+            '    padding: 4px;\n' +
+            '    background: blue;\n' +
+            '    }\n' +
+            '}',
+            #  -- output --
+            '@media only screen and (max-width: 40em) {\n' +
+            '\theader {\n' +
+            '\t\tmargin: 0 auto;\n' +
+            '\t\tpadding: 10px;\n' +
+            '\t\tbackground: red;\n' +
+            '\t}\n' +
+            '\tmain {\n' +
+            '\t\tmargin: 20px auto;\n' +
+            '\t\tpadding: 4px;\n' +
+            '\t\tbackground: blue;\n' +
+            '\t}\n' +
+            '}')
+        t(
+            '.preloader {\n' +
+            '\theight: 20px;\n' +
+            '\t.line {\n' +
+            '\t\twidth: 1px;\n' +
+            '\t\theight: 12px;\n' +
+            '\t\tbackground: #38a0e5;\n' +
+            '\t\tmargin: 0 1px;\n' +
+            '\t\tdisplay: inline-block;\n' +
+            '\t\t&.line-1 {\n' +
+            '\t\t\tanimation-delay: 800ms;\n' +
+            '\t\t}\n' +
+            '\t\t&.line-2 {\n' +
+            '\t\t\tanimation-delay: 600ms;\n' +
+            '\t\t}\n' +
+            '\t}\n' +
+            '\tdiv {\n' +
+            '\t\tcolor: #38a0e5;\n' +
+            '\t\tfont-family: "Arial", sans-serif;\n' +
+            '\t\tfont-size: 10px;\n' +
+            '\t\tmargin: 5px 0;\n' +
+            '\t}\n' +
+            '}')
 
 
         #============================================================
         # Functions braces
-        self.reset_options();
+        self.reset_options()
         t('.tabs(){}', '.tabs() {}')
         t('.tabs (){}', '.tabs () {}')
         t(
@@ -975,11 +1833,111 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
-        # Comments - (i = "", i1 = "\n", o = "\n", new_rule = "\n")
-        self.reset_options();
+        # Beautify preserve formatting
+        self.reset_options()
+        self.options.indent_size = 4
+        self.options.indent_char = ' '
+        self.options.preserve_newlines = true
+        
+        # Directive: ignore
+        t(
+            '/* beautify ignore:start */\n' +
+            '/* beautify ignore:end */')
+        t(
+            '/* beautify ignore:start */\n' +
+            '   var a,,,{ 1;\n' +
+            ' .div {}/* beautify ignore:end */')
+        t(
+            '.div {}\n' +
+            '\n' +
+            '/* beautify ignore:start */\n' +
+            '   .div {}var a = 1;\n' +
+            '/* beautify ignore:end */')
+        
+        # ignore starts _after_ the start comment, ends after the end comment
+        t('/* beautify ignore:start */     {asdklgh;y;+++;dd2d}/* beautify ignore:end */')
+        t('/* beautify ignore:start */  {asdklgh;y;+++;dd2d}    /* beautify ignore:end */')
+        t(
+            '.div {}/* beautify ignore:start */\n' +
+            '   .div {}var a,,,{ 1;\n' +
+            '/*beautify ignore:end*/',
+            #  -- output --
+            '.div {}\n' +
+            '/* beautify ignore:start */\n' +
+            '   .div {}var a,,,{ 1;\n' +
+            '/*beautify ignore:end*/')
+        t(
+            '.div {}\n' +
+            '  /* beautify ignore:start */\n' +
+            '   .div {}var a,,,{ 1;\n' +
+            '/* beautify ignore:end */',
+            #  -- output --
+            '.div {}\n' +
+            '/* beautify ignore:start */\n' +
+            '   .div {}var a,,,{ 1;\n' +
+            '/* beautify ignore:end */')
+        t(
+            '.div {\n' +
+            '    /* beautify ignore:start */\n' +
+            '    one   :  1\n' +
+            '    two   :  2,\n' +
+            '    three :  {\n' +
+            '    ten   : 10\n' +
+            '    /* beautify ignore:end */\n' +
+            '}')
+        t(
+            '.div {\n' +
+            '/* beautify ignore:start */\n' +
+            '    one   :  1\n' +
+            '    two   :  2,\n' +
+            '    three :  {\n' +
+            '    ten   : 10\n' +
+            '/* beautify ignore:end */\n' +
+            '}',
+            #  -- output --
+            '.div {\n' +
+            '    /* beautify ignore:start */\n' +
+            '    one   :  1\n' +
+            '    two   :  2,\n' +
+            '    three :  {\n' +
+            '    ten   : 10\n' +
+            '/* beautify ignore:end */\n' +
+            '}')
+        t(
+            '.div {\n' +
+            '/* beautify ignore:start */\n' +
+            '    one   :  1\n' +
+            ' /* beautify ignore:end */\n' +
+            '    two   :  2,\n' +
+            '/* beautify ignore:start */\n' +
+            '    three :  {\n' +
+            '    ten   : 10\n' +
+            '/* beautify ignore:end */\n' +
+            '}',
+            #  -- output --
+            '.div {\n' +
+            '    /* beautify ignore:start */\n' +
+            '    one   :  1\n' +
+            ' /* beautify ignore:end */\n' +
+            '    two : 2,\n' +
+            '    /* beautify ignore:start */\n' +
+            '    three :  {\n' +
+            '    ten   : 10\n' +
+            '/* beautify ignore:end */\n' +
+            '}')
+
+
+        #============================================================
+        # Comments - (preserve_newlines = "false", newline_between_rules = "false")
+        self.reset_options()
         self.options.preserve_newlines = false
         self.options.newline_between_rules = false
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '.rule {}')
         t(
             '.tabs{/* test */}',
             #  -- output --
@@ -1116,6 +2074,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '}\n' +
             '.demob {\n' +
             '\ttext-align: right;\n' +
+            '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
             '}')
         t(
             '.demoa2 {text-align:left;}//demob instructions for LESS note visibility only\n' +
@@ -1257,11 +2229,19 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n\n\n", i1 = "\n\n\n", o = "\n", new_rule = "\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "false", newline_between_rules = "false")
+        self.reset_options()
         self.options.preserve_newlines = false
         self.options.newline_between_rules = false
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\n' +
@@ -1518,6 +2498,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             '\n' +
@@ -1903,11 +2897,19 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n\t\t\n    \n", i1 = "\n\t\t\t\n   \n", o = "\n", new_rule = "\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "false", newline_between_rules = "false")
+        self.reset_options()
         self.options.preserve_newlines = false
         self.options.newline_between_rules = false
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\t\t\n' +
+            '    \n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\t\t\n' +
@@ -2164,6 +3166,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             '\t\t\n' +
@@ -2549,11 +3565,16 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "", i1 = "\n", o = "\n", new_rule = "\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "false")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = false
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '.rule {}')
         t(
             '.tabs{/* test */}',
             #  -- output --
@@ -2690,6 +3711,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '}\n' +
             '.demob {\n' +
             '\ttext-align: right;\n' +
+            '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
             '}')
         t(
             '.demoa2 {text-align:left;}//demob instructions for LESS note visibility only\n' +
@@ -2831,11 +3866,17 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n", i1 = "\n", o = "\n", new_rule = "\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "false")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = false
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '/* test */\n' +
@@ -3002,6 +4043,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             'text-align:left;\n' +
@@ -3199,11 +4254,21 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n\t\t\n    \n", i1 = "\n\t\t\t\n   \n", o = "\n\n\n", new_rule = "\n\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "false")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = false
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\t\t\n' +
+            '    \n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\t\t\n' +
@@ -3548,6 +4613,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '\n' +
             '\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             '\t\t\n' +
@@ -4097,11 +5176,21 @@ class CSSBeautifierTest(unittest.TestCase):
             '\n' +
             '}')
 
-        # Comments - (i = "\n\n\n", i1 = "\n\n\n", o = "\n\n\n", new_rule = "\n\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "false")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = false
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\n' +
@@ -4446,6 +5535,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '\n' +
             '\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             '\n' +
@@ -4945,11 +6048,17 @@ class CSSBeautifierTest(unittest.TestCase):
             '\n' +
             '}')
 
-        # Comments - (i = "", i1 = "\n", o = "\n", new_rule = "\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "false", newline_between_rules = "true")
+        self.reset_options()
         self.options.preserve_newlines = false
         self.options.newline_between_rules = true
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{/* test */}',
             #  -- output --
@@ -5088,6 +6197,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {text-align:left;}//demob instructions for LESS note visibility only\n' +
             '.demob {text-align: right}',
@@ -5165,6 +6288,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             '#foo {\n' +
             '\tbackground-image: url(foo@2x.png);\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -5181,6 +6305,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo@2x.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -5203,10 +6328,12 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@media screen and (min-device-pixel-ratio: 2) {\n' +
             '\t\t@font-face {\n' +
             '\t\t\tfont-family: "Helvetica Neue";\n' +
             '\t\t}\n' +
+            '\n' +
             '\t\t#foo:hover {\n' +
             '\t\t\tbackground-image: url(foo@2x.png);\n' +
             '\t\t}\n' +
@@ -5217,6 +6344,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:first-child {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -5230,6 +6358,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:not(.peq) {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -5239,11 +6368,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n\n\n", i1 = "\n\n\n", o = "\n", new_rule = "\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "false", newline_between_rules = "true")
+        self.reset_options()
         self.options.preserve_newlines = false
         self.options.newline_between_rules = true
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\n' +
@@ -5501,6 +6639,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             '\n' +
@@ -5695,6 +6847,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             '#foo {\n' +
             '\tbackground-image: url(foo@2x.png);\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -5744,6 +6897,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo@2x.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -5813,10 +6967,12 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@media screen and (min-device-pixel-ratio: 2) {\n' +
             '\t\t@font-face {\n' +
             '\t\t\tfont-family: "Helvetica Neue";\n' +
             '\t\t}\n' +
+            '\n' +
             '\t\t#foo:hover {\n' +
             '\t\t\tbackground-image: url(foo@2x.png);\n' +
             '\t\t}\n' +
@@ -5851,6 +7007,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:first-child {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -5888,6 +7045,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:not(.peq) {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -5897,11 +7055,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n\t\t\n    \n", i1 = "\n\t\t\t\n   \n", o = "\n", new_rule = "\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "false", newline_between_rules = "true")
+        self.reset_options()
         self.options.preserve_newlines = false
         self.options.newline_between_rules = true
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\t\t\n' +
+            '    \n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\t\t\n' +
@@ -6159,6 +7326,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             '\t\t\n' +
@@ -6353,6 +7534,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             '#foo {\n' +
             '\tbackground-image: url(foo@2x.png);\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -6402,6 +7584,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo@2x.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -6471,10 +7654,12 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@media screen and (min-device-pixel-ratio: 2) {\n' +
             '\t\t@font-face {\n' +
             '\t\t\tfont-family: "Helvetica Neue";\n' +
             '\t\t}\n' +
+            '\n' +
             '\t\t#foo:hover {\n' +
             '\t\t\tbackground-image: url(foo@2x.png);\n' +
             '\t\t}\n' +
@@ -6509,6 +7694,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:first-child {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -6546,6 +7732,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:not(.peq) {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -6555,11 +7742,17 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "", i1 = "\n", o = "\n", new_rule = "\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "true")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = true
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{/* test */}',
             #  -- output --
@@ -6698,6 +7891,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {text-align:left;}//demob instructions for LESS note visibility only\n' +
             '.demob {text-align: right}',
@@ -6775,6 +7982,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             '#foo {\n' +
             '\tbackground-image: url(foo@2x.png);\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -6791,6 +7999,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo@2x.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -6813,10 +8022,12 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@media screen and (min-device-pixel-ratio: 2) {\n' +
             '\t\t@font-face {\n' +
             '\t\t\tfont-family: "Helvetica Neue";\n' +
             '\t\t}\n' +
+            '\n' +
             '\t\t#foo:hover {\n' +
             '\t\t\tbackground-image: url(foo@2x.png);\n' +
             '\t\t}\n' +
@@ -6827,6 +8038,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:first-child {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -6840,6 +8052,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:not(.peq) {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -6849,11 +8062,18 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n", i1 = "\n", o = "\n", new_rule = "\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "true")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = true
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '/* test */\n' +
@@ -7021,6 +8241,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '.demob {\n' +
             '\ttext-align: right;\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             'text-align:left;\n' +
@@ -7131,6 +8365,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             '#foo {\n' +
             '\tbackground-image: url(foo@2x.png);\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -7158,6 +8393,7 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo@2x.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@font-face {\n' +
             '\t\tfont-family: "Bitstream Vera Serif Bold";\n' +
             '\t\tsrc: url("http://developer.mozilla.org/@api/deki/files/2934/=VeraSeBd.ttf");\n' +
@@ -7195,10 +8431,12 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t#foo:hover {\n' +
             '\t\tbackground-image: url(foo.png);\n' +
             '\t}\n' +
+            '\n' +
             '\t@media screen and (min-device-pixel-ratio: 2) {\n' +
             '\t\t@font-face {\n' +
             '\t\t\tfont-family: "Helvetica Neue";\n' +
             '\t\t}\n' +
+            '\n' +
             '\t\t#foo:hover {\n' +
             '\t\t\tbackground-image: url(foo@2x.png);\n' +
             '\t\t}\n' +
@@ -7217,6 +8455,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:first-child {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -7238,6 +8477,7 @@ class CSSBeautifierTest(unittest.TestCase):
             #  -- output --
             'a:first-child {\n' +
             '\tcolor: red;\n' +
+            '\n' +
             '\tdiv:not(.peq) {\n' +
             '\t\tcolor: black;\n' +
             '\t}\n' +
@@ -7247,11 +8487,21 @@ class CSSBeautifierTest(unittest.TestCase):
             '\theight: 15px;\n' +
             '}')
 
-        # Comments - (i = "\n\n\n", i1 = "\n\n\n", o = "\n\n\n", new_rule = "\n\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "true")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = true
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\n' +
@@ -7596,6 +8846,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '\n' +
             '\n' +
             '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
+            '}')
         t(
             '.demoa2 {\n' +
             '\n' +
@@ -8095,11 +9359,21 @@ class CSSBeautifierTest(unittest.TestCase):
             '\n' +
             '}')
 
-        # Comments - (i = "\n\t\t\n    \n", i1 = "\n\t\t\t\n   \n", o = "\n\n\n", new_rule = "\n\n\n")
-        self.reset_options();
+        # Comments - (preserve_newlines = "true", newline_between_rules = "true")
+        self.reset_options()
         self.options.preserve_newlines = true
         self.options.newline_between_rules = true
         t('/* header comment newlines on */')
+        t(
+            '@import "custom.css";\n' +
+            '\t\t\n' +
+            '    \n' +
+            '.rule{}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '\n' +
+            '\n' +
+            '.rule {}')
         t(
             '.tabs{\n' +
             '\t\t\n' +
@@ -8443,6 +9717,20 @@ class CSSBeautifierTest(unittest.TestCase):
             '\ttext-align: right;\n' +
             '\n' +
             '\n' +
+            '}')
+        
+        # #1440
+        t(
+            '#search-text {\n' +
+            '  width: 43%;\n' +
+            '  // height: 100%;\n' +
+            '  border: none;\n' +
+            '}',
+            #  -- output --
+            '#search-text {\n' +
+            '\twidth: 43%;\n' +
+            '\t// height: 100%;\n' +
+            '\tborder: none;\n' +
             '}')
         t(
             '.demoa2 {\n' +
@@ -8996,7 +10284,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Handle LESS property name interpolation
-        self.reset_options();
+        self.reset_options()
         t(
             'tag {\n' +
             '\t@{prop}: none;\n' +
@@ -9035,7 +10323,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Handle LESS property name interpolation, test #631
-        self.reset_options();
+        self.reset_options()
         t(
             '.generate-columns(@n, @i: 1) when (@i =< @n) {\n' +
             '\t.column-@{i} {\n' +
@@ -9056,7 +10344,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Handle LESS function parameters
-        self.reset_options();
+        self.reset_options()
         t(
             'div{.px2rem(width,12);}',
             #  -- output --
@@ -9072,7 +10360,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Psuedo-classes vs Variables
-        self.reset_options();
+        self.reset_options()
         t('@page :first {}')
         
         # Assume the colon goes with the @name. If we're in LESS, this is required regardless of the at-string.
@@ -9081,8 +10369,26 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
+        # Issue 1411 -- LESS Variable Assignment Spacing
+        self.reset_options()
+        t(
+            '@set: {\n' +
+            '\tone: blue;\n' +
+            '\ttwo: green;\n' +
+            '\tthree: red;\n' +
+            '}\n' +
+            '.set {\n' +
+            '\teach(@set, {\n' +
+            '\t\t@{key}-@{index}: @value;\n' +
+            '\t}\n' +
+            '\t);\n' +
+            '}')
+        t('@light-blue: @nice-blue + #111;')
+
+
+        #============================================================
         # SASS/SCSS
-        self.reset_options();
+        self.reset_options()
         
         # Basic Interpolation
         t(
@@ -9110,7 +10416,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Proper handling of colon in selectors
-        self.reset_options();
+        self.reset_options()
         self.options.selector_separator_newline = false
         t('a :b {}')
         t('a ::b {}')
@@ -9136,7 +10442,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # Regresssion Tests
-        self.reset_options();
+        self.reset_options()
         self.options.selector_separator_newline = false
         t(
             '@media(min-width:768px) {\n' +
@@ -9154,8 +10460,76 @@ class CSSBeautifierTest(unittest.TestCase):
 
 
         #============================================================
+        # Issue #645
+        self.reset_options()
+        self.options.selector_separator_newline = true
+        self.options.preserve_newlines = true
+        self.options.newline_between_rules = true
+        t(
+            '/* Comment above first rule */\n' +
+            '\n' +
+            'body {\n' +
+            '\tdisplay: none;\n' +
+            '}\n' +
+            '\n' +
+            '/* Comment between rules */\n' +
+            '\n' +
+            'ul,\n' +
+            '\n' +
+            '/* Comment between selectors */\n' +
+            '\n' +
+            'li {\n' +
+            '\tdisplay: none;\n' +
+            '}\n' +
+            '\n' +
+            '/* Comment after last rule */')
+
+
+        #============================================================
+        # Extend Tests
+        self.reset_options()
+        t(
+            '.btn-group-radios {\n' +
+            '\t.btn:hover {\n' +
+            '\t\t&:hover,\n' +
+            '\t\t&:focus {\n' +
+            '\t\t\t@extend .btn-blue:hover;\n' +
+            '\t\t}\n' +
+            '\t}\n' +
+            '}')
+        t(
+            '.item-warning {\n' +
+            '\t@extend btn-warning:hover;\n' +
+            '}\n' +
+            '.item-warning-wrong {\n' +
+            '\t@extend btn-warning: hover;\n' +
+            '}')
+
+
+        #============================================================
+        # Import Tests
+        self.reset_options()
+        t(
+            '@import "custom.css";.rule{}\n' +
+            'a, p {}',
+            #  -- output --
+            '@import "custom.css";\n' +
+            '.rule {}\n' +
+            'a,\n' +
+            'p {}')
+        t(
+            '@import url("bluish.css") projection,tv;.rule{}\n' +
+            'a, p {}',
+            #  -- output --
+            '@import url("bluish.css") projection, tv;\n' +
+            '.rule {}\n' +
+            'a,\n' +
+            'p {}')
+
+
+        #============================================================
         # Important 
-        self.reset_options();
+        self.reset_options()
         t(
             'a {\n' +
             '\tcolor: blue  !important;\n' +
@@ -9180,7 +10554,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         #============================================================
         # 
-        self.reset_options();
+        self.reset_options()
 
 
 
@@ -9198,9 +10572,18 @@ class CSSBeautifierTest(unittest.TestCase):
         self.reset_options()
         t = self.decodesto
 
-        self.reset_options();
+        self.reset_options()
         #============================================================
         t(None, "")
+
+        self.reset_options()
+        #============================================================
+        # Test user pebkac protection, converts dash names to underscored names
+        setattr(self.options, 'end-with-newline', True)
+        t(None, '\n')
+        
+        self.reset_options()
+        #============================================================
 
         t("", "")
         t("\n", "")
@@ -9215,7 +10598,7 @@ class CSSBeautifierTest(unittest.TestCase):
 
         t("a:before {\n" +
             "\tcontent: 'a{color:black;}\"\"\\'\\'\"\\n\\n\\na{color:black}\';\n" +
-            "}");
+            "}")
 
         # may not eat the space before "["
         t('html.js [data-custom="123"] {\n\topacity: 1.00;\n}')
@@ -9309,18 +10692,18 @@ class CSSBeautifierTest(unittest.TestCase):
             '\t&: hover {\n' +
             '\t\tcolor: green;\n' +
             '\t}\n' +
-            '}');
+            '}')
 
         # import
-        t('@import "test";');
+        t('@import "test";')
 
         # don't break nested pseudo-classes
         t("a:first-child{color:red;div:first-child{color:black;}}",
-            "a:first-child {\n\tcolor: red;\n\tdiv:first-child {\n\t\tcolor: black;\n\t}\n}");
+            "a:first-child {\n\tcolor: red;\n\tdiv:first-child {\n\t\tcolor: black;\n\t}\n}")
 
         # handle SASS/LESS parent reference
         t("div{&:first-letter {text-transform: uppercase;}}",
-            "div {\n\t&:first-letter {\n\t\ttext-transform: uppercase;\n\t}\n}");
+            "div {\n\t&:first-letter {\n\t\ttext-transform: uppercase;\n\t}\n}")
 
         # nested modifiers (&:hover etc)
         t(".tabs{&:hover{width:10px;}}", ".tabs {\n\t&:hover {\n\t\twidth: 10px;\n\t}\n}")
@@ -9349,8 +10732,14 @@ class CSSBeautifierTest(unittest.TestCase):
                 cssbeautifier.beautify(expectation, self.options), expectation)
 
         # Everywhere we do newlines, they should be replaced with opts.eol
-        self.options.eol = '\r\\n';
+        self.options.eol = '\r\\n'
         expectation = expectation.replace('\n', '\r\n')
+        self.options.disabled = True
+        self.assertMultiLineEqual(
+            cssbeautifier.beautify(input, self.options), input or '')
+        self.assertMultiLineEqual(
+            cssbeautifier.beautify('\n\n' + expectation, self.options), '\n\n' + expectation)
+        self.options.disabled = False;
         self.assertMultiLineEqual(
             cssbeautifier.beautify(input, self.options), expectation)
         if input and input.find('\n') != -1:
