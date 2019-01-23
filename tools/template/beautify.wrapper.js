@@ -106,6 +106,9 @@ if (typeof define === "function" && define.amd) {
 } else if (typeof global !== "undefined") {
     // If we don't even have window, try global.
     global.js_beautify = js_beautify;
+} else if (typeof self !== 'undefined') {
+    // web worker
+    self.js_beautify = js_beautify;
 }
 
 }());
